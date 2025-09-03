@@ -8,7 +8,7 @@ Several open‑source code LLMs can run on Apple silicon hardware without sendin
 
 | Model | VRAM requirement (quantised) | Strengths | Notes |
 |------|-------------------------------|----------|------|
-| **StarCoder2** (7‑15 B) | ~8‑24 GB【326645243015398†L84-L92】 | Strong general‑purpose coding; trained on 600+ programming languages【231297671492799†L149-L176】 including Go; good for scripting and research. | Use `ollama pull starcoder2:7b` for a smaller footprint. |
+| **StarCoder2** (7–15 B) | ~8‑24 GB【326645243015398†L84-L92】 | Strong general‑purpose coding; trained on 600+ programming languages【231297671492799†L149-L176】 including Go; good for scripting and research. | Use `ollama pull starcoder2:7b` for a smaller footprint. |
 | **Qwen 2.5 Coder** (7 B or 14 B) | 12‑16 GB【326645243015398†L93-L95】 | Multilingual coding assistant; performs well across 40+ languages【607765842191462†L57-L61】 and excels at fill‑in‑the‑middle editing. | Use `ollama pull qwen2.5-coder:7b` for Go coding tasks. |
 | **DeepSeek‑Coder** (6.7 B/33 B) | 12‑16 GB【326645243015398†L88-L90】 | Fast model with advanced parallel token prediction; handles long contexts well. | Larger variants require >24 GB of GPU memory. |
 | **Phi‑3 Mini** (3.8 B) | 4‑8 GB【326645243015398†L96-L97】 | Compact model with solid logic‑reasoning abilities; suitable for lightweight coding tasks or running entirely on CPU. | Ideal when memory is constrained or for quick prototyping. |
@@ -67,8 +67,11 @@ Follow these steps to install the necessary tools and run the example program:
 ## Project structure
 
 ```
-go-agentic-example/
+go-agentic-chromedp/
 ├── main.go    # Go program that drives the browser via chromedp
+├── go.mod     # Go module definition for the root package
+├── agent/     # optional agent demonstrating LLM tool calling
+│   ├── main.go
 └── README.md  # this file with setup instructions and model recommendations
 ```
 
@@ -79,3 +82,37 @@ go-agentic-example/
 * Qwen 2.5 Coder’s rich model sizes (0.5B up to 32B) provide options for different resource budgets【607765842191462†L87-L100】.  Its 7B and 14B variants are ideal for laptop use, and the model performs well across a wide range of programming languages【607765842191462†L57-L61】.
 
 Happy coding!
+
+## Running with an LLM via tool calling
+
+This repository also includes an optional **agent** program that shows how a
+local language model can orchestrate the browser automation.  The file
+`agent/main.go` registers a function tool called `get_random_number` and
+advertises it to a local OpenAI‑compatible model.  When the model chooses to
+call the tool, the program executes the browser automation to fetch a random
+number and returns it to the model.
+
+### Instructions
+
+1. **Start a local OpenAI‑compatible server.**  For example, enable the
+   *Developer → OpenAI Compatible Server* in LM Studio or run Ollama with
+   tool‑calling support.  Make note of the server URL (e.g. `http://localhost:1234`).
+
+2. **Configure the agent.**  Edit the constants `lmBaseURL` and `model` at the top
+   of `agent/main.go` to match your server URL and chosen model (e.g.
+   `qwen2.5-coder:7b`).
+
+3. **Run the agent.**  From the repository root:
+
+   ```bash
+   cd agent
+   go run .
+   ```
+
+   The program sends a conversation to the model asking for a random number.
+   If the model responds with a tool call, the agent opens Chrome, clicks
+   **Get Numbers** on random.org and passes the result back to the model.  Finally,
+   the model’s response is printed to your terminal.
+
+This demonstrates how a local LLM can coordinate real browser actions while
+keeping all data on your machine.
